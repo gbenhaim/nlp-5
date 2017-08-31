@@ -3,7 +3,7 @@ import logging
 import numpy as np
 from nltk import load
 import gensim
-from sklearn import svm
+import nn
 
 LOGGER = logging.getLogger(__name__)
 
@@ -18,6 +18,8 @@ transition_mapping = {
     1: 'LEFT',
     2: 'RIGHT'
 }
+
+N_CLASSES = len(transition_mapping) / 2
 
 pos_mapping = None
 NUM_OF_POS = 0
@@ -53,6 +55,13 @@ def create_pos_vector(pos):
     return v
 
 
+def create_class_one_hot(move):
+    v = np.zeros(N_CLASSES)
+    idx = transition_mapping[move]
+    v[idx] = 1
+    return v
+
+
 def create_vector(transition):
 
     w1 = transition[0]
@@ -82,7 +91,7 @@ def create_vector(transition):
          )
     )
 
-    return vector, transition_mapping[move]
+    return vector, create_class_one_hot(move)
 
 
 def sentence_gen(source_file):
@@ -113,7 +122,6 @@ def transition_gen(data_path):
 def train(data_path):
     LOGGER.info('Building classifier')
     gen = transition_gen(data_path)
-    clf = svm.SVC(decision_function_shape='ovr')
     vectors = []
     labels = []
     for transition in gen:
@@ -123,18 +131,21 @@ def train(data_path):
         vectors.append(vector)
         labels.append(label)
 
-    clf.fit(vectors, labels)
+    n_features = len(vectors[0])
+    n_classes = len(labels[0])
 
-    return clf
+    LOGGER.debug('number of feature = {}'.format(n_features))
+    LOGGER.debug('number of classes = {}'.format(n_classes))
+
+    return nn.train((vectors, labels), n_features, n_classes)
 
 
 def main():
     logging.basicConfig(level=logging.INFO)
     set_pos_mapping()
     load_w2v_model()
-    clf = train('../data/en.tr100')
-    import pdb
-    pdb.set_trace()
+    print train('../data/en.tr100')
+
 
 if __name__ == '__main__':
     main()
