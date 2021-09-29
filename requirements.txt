@@ -9,7 +9,7 @@ gensim==2.2.0
 idna==2.5
 ipython==5.4.1
 ipython-genutils==0.2.0
-nltk==3.2.4
+nltk==3.6.3
 numpy==1.13.1
 pathlib2==2.3.0
 pexpect==4.2.1
